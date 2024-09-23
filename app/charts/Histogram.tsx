@@ -62,7 +62,7 @@ const Histogram = ({ data }: HistogramProps) => {
     });
 
     return (
-        <ChartContainer svgDims={svgDims} width={width} height={height} margin={margin} title='sth'>
+        <ChartContainer svgDims={svgDims} width={width} height={height} margin={margin} title='vouty' theme='light'>
             {rects}
         </ChartContainer>
     )
