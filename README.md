@@ -1,3 +1,7 @@
+# Statistics Made Easy
+
+Dashboard to present statistic concepts easily
+
 # Remix
 
 This directory is a brief example of a [Remix](https://remix.run/docs) site that can be deployed to Vercel with zero configuration.
