@@ -2,12 +2,13 @@
 
 import * as d3 from 'd3'
 import { useMemo } from 'react'
+import ChartContainer from './components/Container'
 
-interface ChartProps {
-    data: Array<number>
+interface HistogramProps {
+    data: Array<Number>
 }
 
-const Histogram = ({ data }): ChartProps => {
+const Histogram = ({ data }: HistogramProps) => {
     const svgDims = {
         width: 400,
         height: 400
@@ -29,13 +30,14 @@ const Histogram = ({ data }): ChartProps => {
             .range([0, width])
     }, [data, width])
 
-    const binGenerator = d3
-        .bin()
-        .value(d => d)
-        .domain(x.domain())
-        .thresholds(x.ticks(20))
-
-    const bins = binGenerator(data)
+    const bins = useMemo(() => {
+        return d3
+            .bin()
+            .value(d => d)
+            .domain(x.domain())
+            .thresholds(x.ticks(20))
+            (data)
+    }, [data, x]) as unknown as [{ length: number, x0: number, x1: number }]
 
 
     const y = useMemo(() => {
@@ -45,7 +47,7 @@ const Histogram = ({ data }): ChartProps => {
             .range([height, 0])
     }, [bins, height])
 
-    const allRects = bins.map((bin, i) => {
+    const rects = bins.map((bin, i) => {
         return (
             <rect
                 key={i}
@@ -60,13 +62,10 @@ const Histogram = ({ data }): ChartProps => {
     });
 
     return (
-        <div>
-            <svg width={width} height={height}>
-                {allRects}
-            </svg>
-        </div>
+        <ChartContainer svgDims={svgDims} width={width} height={height} margin={margin} title='sth'>
+            {rects}
+        </ChartContainer>
     )
-
 }
 
 export default Histogram
