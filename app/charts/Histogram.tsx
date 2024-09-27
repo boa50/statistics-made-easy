@@ -3,17 +3,13 @@
 import * as d3 from 'd3'
 import { useMemo } from 'react'
 import ChartContainer from './components/Container'
+import { useRef } from "react"
 
 interface HistogramProps {
     data: Array<Number>
 }
 
 const Histogram = ({ data }: HistogramProps) => {
-    const svgDims = {
-        width: 400,
-        height: 400
-    }
-
     const margin = {
         bottom: 64,
         left: 72,
@@ -62,7 +58,7 @@ const Histogram = ({ data }: HistogramProps) => {
     });
 
     return (
-        <ChartContainer svgDims={svgDims} width={width} height={height} margin={margin} title='vouty' theme='light'>
+        <ChartContainer margin={margin} title='vouty' theme='light'>
             {rects}
         </ChartContainer>
     )

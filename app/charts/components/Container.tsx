@@ -1,7 +1,9 @@
-import type { SvgDims, Margin } from "~/aux/Interfaces"
+import type { Margin } from "~/aux/Interfaces"
+import { useEffect, useState, useRef } from "react"
 
 const ChartContainer = ({
-    id = Math.random(),
+    // id = Math.random(),
+    id = 1,
     title = undefined,
     subtitle = undefined,
     theme = 'light',
@@ -17,14 +19,32 @@ const ChartContainer = ({
     subtitleSize = 'text-xs md:text-sm',
     subtitleColour = undefined,
     subtitleWeight = '',
-    svgDims,
-    width,
-    height,
     margin,
+    chartDimensions,
     children
 }: Props) => {
     const chartId = `chart-${id}`
     let containerBackground = 'bg-neutral-50'
+    const [width, setWidth] = useState(0)
+    const [height, setHeight] = useState(0)
+    const [svgWidth, setSvgWidth] = useState(0)
+    const [svgHeight, setSvgHeight] = useState(0)
+    const [viewBoxWidth, setViewBoxWidth] = useState(0)
+    const [viewBoxHeight, setViewBoxHeight] = useState(0)
+    const innerContainer = useRef(null)
+
+    useEffect(() => {
+        if (chartDimensions === undefined) chartDimensions = getChartDimensions({ innerContainer: innerContainer })
+
+        setSvgWidth(getSvgWidth(innerContainer))
+        setSvgHeight(getSvgHeight(innerContainer))
+
+        setViewBoxWidth(chartDimensions.width)
+        setViewBoxHeight(chartDimensions.height)
+
+        setWidth(viewBoxWidth - margin.left - margin.right)
+        setHeight(viewBoxHeight - margin.top - margin.bottom)
+    }, [])
 
     switch (theme) {
         case 'light':
@@ -50,7 +70,7 @@ const ChartContainer = ({
 
     return (
         <div className={outerContainerClass}>
-            <div id={`${chartId}-container`} className={innerContainerClass}>
+            <div id={`${chartId}-container`} className={innerContainerClass} ref={innerContainer}>
                 {
                     title !== undefined ?
                         <h3 id={`${chartId}-title`} className={titleClass}>{title}</h3>
@@ -61,11 +81,18 @@ const ChartContainer = ({
                         <h4 id={`${chartId}-subtitle`} className={subtitleClass}>{subtitle}</h4>
                         : null
                 }
-                <svg width={svgDims.width} height={svgDims.height} id={`barchart-${title}`}>
+                <svg
+                    id={chartId}
+                    width={svgWidth}
+                    height={svgHeight}
+                    viewBox={`0 0  ${viewBoxWidth} ${viewBoxHeight}`}
+                    preserveAspectRatio="xMinYMid meet"
+                >
                     <g
+                        id={`${chartId}-main-g`}
                         width={width}
                         height={height}
-                        transform={`translate(${[margin.left, margin.top].join(',')})`}>
+                        transform={`translate(${[margin.left, margin.top]})`}>
                         {children}
                     </g>
                 </svg>
@@ -78,6 +105,59 @@ export default ChartContainer
 
 function getValueIfUndefined(variable: any, value: any) {
     return variable === undefined ? value : variable
+}
+
+function getSvgWidth(innerContainer) {
+    return innerContainer.current.offsetWidth
+}
+
+function getSvgHeight(innerContainer) {
+    // const title = document.getElementById(`${chartId}-title`)
+    // const subtitle = document.getElementById(`${chartId}-subtitle`)
+
+    // return document.getElementById(`${chartId}-container`).offsetHeight
+    //     - (title ? title.offsetHeight : 0) - (subtitle ? subtitle.offsetHeight : 0)
+    return innerContainer.current.offsetHeight
+}
+
+function getChartScale(innerContainer) {
+    return getSvgWidth(innerContainer) / getSvgHeight(innerContainer)
+}
+
+function getChartDimensions({
+    innerContainer,
+    sm = { width: 420, scale: undefined },
+    md = { width: 700, scale: undefined },
+    lg = { width: 700, scale: undefined },
+    xl = { width: 622, scale: undefined },
+    xl2 = { width: 875, scale: undefined }
+}) {
+    let width, height, scale
+
+    if (window.matchMedia("(min-width: 1536px)").matches) {
+        width = xl2.width
+        scale = xl2.scale
+    } else if (window.matchMedia("(min-width: 1280px)").matches) {
+        width = xl.width
+        scale = xl.scale
+    } else if (window.matchMedia("(min-width: 1024px)").matches) {
+        width = lg.width
+        scale = lg.scale
+    } else if (window.matchMedia("(min-width: 768px)").matches) {
+        width = md.width
+        scale = md.scale
+    } else {
+        width = sm.width
+        scale = sm.scale
+    }
+
+    if (scale === undefined) {
+        scale = innerContainer !== undefined ? getChartScale(innerContainer) : (16 / 9)
+    }
+
+    height = width / scale
+
+    return { width, height }
 }
 
 interface Props {
@@ -97,9 +177,6 @@ interface Props {
     subtitleSize?: string
     subtitleColour?: string | undefined
     subtitleWeight?: string
-    svgDims: SvgDims
-    width: number
-    height: number
     margin: Margin
     children: React.ReactNode
 }
