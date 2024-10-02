@@ -1,7 +1,7 @@
 import type { Margin } from "~/aux/Interfaces"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, forwardRef } from "react"
 
-const ChartContainer = ({
+const ChartContainer = forwardRef<HTMLDivElement>(({
     // id = Math.random(),
     id = 1,
     title = undefined,
@@ -22,7 +22,7 @@ const ChartContainer = ({
     margin,
     chartDimensions,
     children
-}: Props) => {
+}: Props, chartGroupRef) => {
     const chartId = `chart-${id}`
     let containerBackground = 'bg-neutral-50'
     const [width, setWidth] = useState(0)
@@ -41,10 +41,12 @@ const ChartContainer = ({
 
         setViewBoxWidth(chartDimensions.width)
         setViewBoxHeight(chartDimensions.height)
+    }, [innerContainer])
 
+    useEffect(() => {
         setWidth(viewBoxWidth - margin.left - margin.right)
         setHeight(viewBoxHeight - margin.top - margin.bottom)
-    }, [])
+    }, [viewBoxWidth, viewBoxHeight, margin])
 
     switch (theme) {
         case 'light':
@@ -90,6 +92,7 @@ const ChartContainer = ({
                 >
                     <g
                         id={`${chartId}-main-g`}
+                        ref={chartGroupRef}
                         width={width}
                         height={height}
                         transform={`translate(${[margin.left, margin.top]})`}>
@@ -99,7 +102,9 @@ const ChartContainer = ({
             </div>
         </div>
     )
-}
+})
+
+ChartContainer.displayName = 'ChartContainer'
 
 export default ChartContainer
 

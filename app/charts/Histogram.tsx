@@ -1,23 +1,32 @@
 'use client'
 
 import * as d3 from 'd3'
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect, useState } from 'react'
 import ChartContainer from './components/Container'
-import { useRef } from "react"
 
 interface HistogramProps {
     data: Array<Number>
 }
 
 const Histogram = ({ data }: HistogramProps) => {
+    const chartGroupRef = useRef<SVGGElement>()
+    const [width, setWidth] = useState(1)
+    const [height, setHeight] = useState(1)
+    const isWidthChange = chartGroupRef.current !== undefined ? chartGroupRef.current.getAttribute('width') : null
+
+    useEffect(() => {
+        if (chartGroupRef.current) {
+            setWidth(parseFloat(chartGroupRef.current.getAttribute('width') as string))
+            setHeight(parseFloat(chartGroupRef.current.getAttribute('height') as string))
+        }
+    }, [isWidthChange])
+
     const margin = {
-        bottom: 64,
-        left: 72,
+        bottom: 8,
+        left: 8,
         top: 8,
         right: 8
     }
-    const width = 300
-    const height = 300
 
     const x = useMemo(() => {
         return d3
@@ -58,7 +67,7 @@ const Histogram = ({ data }: HistogramProps) => {
     });
 
     return (
-        <ChartContainer margin={margin} title='vouty' theme='light'>
+        <ChartContainer margin={margin} title='vouty' theme='light' ref={chartGroupRef}>
             {rects}
         </ChartContainer>
     )
